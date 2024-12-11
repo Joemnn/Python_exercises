@@ -1,0 +1,234 @@
+# 1.1. Create a python module mod.py
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import yfinance as yf
+
+#1.1 Using the function stock_return_risk() calculate and print the average annual return and annual risk/volatility (standard deviation of returns) of a stock. Select a stock of your choice.
+
+# Function: Calculate the average annual return and volatility of a single stock
+def stock_return_risk(prices):
+
+    # Calculate daily returns
+    daily_returns = prices.pct_change().dropna()
+    # Average annual return (252 trading days)
+    avg_annual_return = np.mean(daily_returns) * 252
+    # Annual volatility
+    annual_volatility = np.std(daily_returns.values) * np.sqrt(252)
+    return avg_annual_return, annual_volatility
+
+# Select a stock
+tick = 'NVDA'  # Example: Apple Inc.
+
+# Download stock data
+data = yf.download(tick, start='2014-01-01')['Adj Close']
+
+# Calculate the average annual return and volatility
+avg_return, volatility = stock_return_risk(data)
+
+# Print the results
+print(f"{tick} Average Annual Return: {avg_return:.2%}")
+print(f"{tick} Annual Volatility: {volatility:.2%}")
+
+
+
+# 1.2 Download data using the yahoo finance API
+# To calculate return we use the adjusted close price as it reflects dividend payments to shareholders and operations such as stock splits.
+# Data for trading days. no data for saturdays/sundays and bank holidays.
+
+# securities in the portfolio
+tickers = ['NVDA', 'WMT', 'MA', 'JNJ', 'LMT']
+
+ # dataframe to store the price data of the securities in the portfolio
+df = yf.download(tickers, start='2014-01-01')['Adj Close']
+
+df.info()
+
+# plot the normalized data, this code retrieves historical adjusted closing price, and helps visualize the price changes over time.
+(df / df.iloc[0] * 100).plot(figsize = (20, 8));
+plt.show()
+# As we can see, Nvidia outperformed other securities
+
+# Calculate the daily simple rate of returns of the securities in the portfolio using the adjusted close price and store in dataframe called returns
+Daily_Return = (df / df.shift(1)) - 1
+
+average_daily_returns = Daily_Return.mean()
+print("Average Daily Return (Per Security):")
+print(average_daily_returns)
+
+# Calculate annual returns of securities. Approx 250 trading days in a year.
+annual_returns = Daily_Return.mean() * 250
+print(annual_returns)
+# NVIDIA significantly outperformed other securities while the other securities also exhibited positive returns
+
+# Daily risk of each security and print
+print(Daily_Return.std())
+
+# Annual risk of each security
+annual_volatility = Daily_Return.std()* 250 ** 0.5
+print(annual_volatility)
+#We can see that Nvidia is the most risky/volatile stock, but we can also see that Johnson & Johnson stock is the least risky.
+
+
+#1.2 weights of the securities in portfolio1
+weights1 = np.array([0.20, 0.20, 0.20, 0.20, 0.20])
+
+#weights of the securities in portfolio2
+weights2 = np.array([0.25, 0.25, 0.1, 0.1, 0.3])
+
+#1.2 Calculate expected annual rate of return of Portfolio 1
+portfolio_annual_return1 = np.dot(annual_returns, weights1)
+print("Portfolio 1 - Annual return %: ", 100*portfolio_annual_return1)
+
+#1.2 Calculate expected annual rate of return of Portfolio 2
+portfolio_annual_return2 = np.dot(annual_returns, weights2)
+print("Portfolio 2 - Annual return %: ", 100*portfolio_annual_return2)
+
+#This code provides a valuable tool for portfolio risk analysis. By calculating and comparing the annual risk/volatility of different portfolio allocations, it allows us to better allocate our portfolio taking into account risks.
+def portfolio_risk(df, weights):
+    """
+    Calculates the annual risk/volatility (standard deviation of returns) of a portfolio of stocks.
+
+    Parameters:
+        df (DataFrame): DataFrame containing daily adjusted close prices of securities.
+        weights (numpy.ndarray): A numpy array of the weights of the securities in the portfolio.
+
+    Returns:
+        float: The annual risk/volatility of the portfolio.
+    """
+    # Calculate daily returns
+    daily_returns = df.pct_change().dropna()
+
+    # Calculate the covariance matrix of daily returns
+    covariance_matrix = daily_returns.cov()
+
+    # Calculate portfolio variance
+    portfolio_variance = np.dot(weights.T, np.dot(covariance_matrix, weights))
+
+    # Calculate portfolio standard deviation (volatility)
+    portfolio_volatility = np.sqrt(portfolio_variance)
+
+    # Annualize the volatility (sqrt of 252 trading days in a year)
+    annual_volatility = portfolio_volatility * np.sqrt(252)
+
+    return annual_volatility
+
+# Portfolio weights
+weights1 = np.array([0.20, 0.20, 0.20, 0.20, 0.20])
+weights2 = np.array([0.25, 0.25, 0.1, 0.1, 0.3])
+
+# Calculate risk for Portfolio 1
+risk1 = portfolio_risk(df, weights1)
+print("Portfolio 1 - Annual Risk/Volatility: {:.4f}".format(risk1))
+
+# Calculate risk for Portfolio 2
+risk2 = portfolio_risk(df, weights2)
+print("Portfolio 2 - Annual Risk/Volatility: {:.4f}".format(risk2))
+#Portfolio 2 is less risky than Portfolio 1, since the annual volatility of Portfolio 2 is lower than that of Portfolio 1, Portfolio 2 returns are likely to fluctuate less sharply than those of Portfolio 1.
+
+
+
+#2. Then create a python file, main.py and import the module mod. Then complete the following tasks in main.py:
+
+#2.1 Using the function stock_return_risk() calculate and print the average annual return and annual risk/volatility (standard deviation of returns) of a stock. Select a stock of your choice.
+
+# Function: Calculate the average annual return and volatility of a single stock
+def stock_return_risk(prices):
+
+    # Calculate daily returns
+    daily_returns = prices.pct_change().dropna()
+    # Average annual return (252 trading days)
+    avg_annual_return = np.mean(daily_returns) * 252
+    # Annual volatility
+    annual_volatility = np.std(daily_returns.values) * np.sqrt(252)
+    return avg_annual_return, annual_volatility
+
+# Select a stock
+ticker = 'AAPL'  # Example: Apple Inc.
+
+# Download stock data
+data = yf.download(ticker, start='2014-01-01')['Adj Close']
+
+# Calculate the average annual return and volatility
+avg_return, volatility = stock_return_risk(data)
+
+# Print the results
+print(f"{ticker} Average Annual Return: {avg_return:.2%}")
+print(f"{ticker} Annual Volatility: {volatility:.2%}")
+
+data.head()
+
+#2.2 Using the portfolio_return() function in module mod, for a portfolio of six stocks, calculate and print the yearly rate of return of the portfolio of stocks. Select the stocks of your choice and assume the weights of the stocks in the portfolio.
+
+# Function: Calculate the annual return of a portfolio
+def portfolio_return(prices, weights):
+
+    # Calculate daily returns
+    daily_returns = prices.pct_change().dropna()
+    # Portfolio daily returns = daily returns of each stock * corresponding weights
+    portfolio_daily_returns = daily_returns.dot(weights)
+    # Annualized portfolio return
+    annual_portfolio_return = np.mean(portfolio_daily_returns) * 252
+    return annual_portfolio_return
+
+# Define stocks in the portfolio
+tickers = ['AAPL', 'MSFT', 'GOOG', 'AMZN', 'TSLA', 'NVDA']  # Example stocks
+
+# Assume weights for each stock (sum must be 1)
+weights = [0.2, 0.2, 0.2, 0.2, 0.1, 0.1]  # Example weights
+
+# Download stock data for all stocks
+prices = pd.DataFrame()
+for ticker in tickers:
+    prices[ticker] = yf.download(ticker, start='2014-01-01')['Adj Close']
+
+# Calculate the annual return of the portfolio
+portfolio_annual_return = portfolio_return(prices, weights)
+
+# Print the result
+print(f"Portfolio Annual Return: {portfolio_annual_return:.2%}")
+
+#2.3 Using the portfolio_risk() function in module mod, for the portfolio of six stocks, calculate and print the yearly risk/volatility (standard deviation of returns) of the portfolio. Use the same list of stocks and the same weights of the stocks in the portfolio as in 2.2.
+
+# Function: Calculate the annual return of a portfolio
+def portfolio_return(prices, weights):
+
+    # Calculate daily returns
+    daily_returns = prices.pct_change().dropna()
+    # Portfolio daily returns = daily returns of each stock * corresponding weights
+    portfolio_daily_returns = daily_returns.dot(weights)
+    # Annualized portfolio return
+    annual_portfolio_return = np.mean(portfolio_daily_returns) * 252
+    return annual_portfolio_return
+
+# Function: Calculate the annual risk/volatility of a portfolio
+def portfolio_risk(prices, weights):
+
+    # Calculate daily returns
+    daily_returns = prices.pct_change().dropna()
+    # Portfolio daily returns = daily returns of each stock * corresponding weights
+    portfolio_daily_returns = daily_returns.dot(weights)
+    # Annualized portfolio risk (standard deviation)
+    annual_portfolio_risk = np.std(portfolio_daily_returns) * np.sqrt(252)
+    return annual_portfolio_risk
+
+# Define stocks in the portfolio
+tickers = ['AAPL', 'MSFT', 'GOOG', 'AMZN', 'TSLA', 'NVDA']  # Example stocks
+
+# Assume weights for each stock (sum must be 1)
+weights = [0.2, 0.2, 0.2, 0.2, 0.1, 0.1]  # Example weights
+
+# Download stock data for all stocks
+prices = pd.DataFrame()
+for ticker in tickers:
+    prices[ticker] = yf.download(ticker, start='2014-01-01')['Adj Close']
+
+# Calculate the annual return of the portfolio
+portfolio_annual_return = portfolio_return(prices, weights)
+
+# Calculate the annual risk/volatility of the portfolio
+portfolio_annual_risk = portfolio_risk(prices, weights)
+
+# Print the results
+print(f"Portfolio Annual Return: {portfolio_annual_return:.2%}")
+print(f"Portfolio Annual Risk/Volatility: {portfolio_annual_risk:.2%}")
